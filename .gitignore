@@ -30,7 +30,7 @@ plots/
 # Jupyter Notebook cache
 .ipynb_checkpoints/
 
-# Large datasets if any
-data/
-datasets/
-*.csv
+# # Large datasets if any
+# data/
+# datasets/
+# *.csv
