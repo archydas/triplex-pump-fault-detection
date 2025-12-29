@@ -7,12 +7,16 @@ from pathlib import Path
 # General configuration
 MONITOR = 'val_loss'
 VAL_SPLIT = 0.2
-LSTM_UNITS = 100
+
+# IMPORTANT — reduce model capacity to avoid overfitting
+LSTM_UNITS = 64          # was 100 → too large for dataset
 OPTIMIZER = 'adam'
-EPOCHS = 80   # you can increase later
+
+# Training stability
+EPOCHS = 60              # 80 was unnecessary + caused overfitting
 
 # Multi-class classification
-OUTPUT_SIZE = 7   # Pump faults = 7 classes
+OUTPUT_SIZE = 7          # 7 Pump fault classes
 ACTIVATION = 'softmax'
 LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 

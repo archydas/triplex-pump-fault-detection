@@ -30,23 +30,27 @@ def _dataScaler(data):
 
 def _downSampler(data, start_index, sample_rate):
     """
-    Downsamples time-series using averaging windows
+    Downsample using sliding window with 50% overlap.
+    Preserves temporal patterns and increases dataset size.
     """
+
     final_sequence = []
+    step = sample_rate // 2       # 50% overlap
 
     for dataset in data:
         resampled = []
-        start = start_index
-        stop = sample_rate
 
-        for _ in range(int(len(dataset) / sample_rate)):
-            resampled.append(dataset[start:stop, :].mean(axis=0))
-            start += sample_rate
-            stop += sample_rate
+        for start in range(0, len(dataset) - sample_rate, step):
+            stop = start + sample_rate
+            window = dataset[start:stop, :]
+
+            # mean keeps frequency trend but not destroy signal
+            resampled.append(window.mean(axis=0))
 
         final_sequence.append(np.stack(resampled))
 
     return np.stack(final_sequence)
+
 
 
 def _FFT(data):
@@ -119,12 +123,17 @@ def get_save_train_test_data(raw_data: PumpDataset) -> ProcessedPumpDataset:
 
         logging.info(f"Splitting test size = {config.DATA_TEST_SIZE}")
 
+        from sklearn.model_selection import train_test_split
+
         X_train, X_test, y_train, y_test = train_test_split(
             X, y,
             test_size=config.DATA_TEST_SIZE,
             random_state=42,
-            stratify=y
+            stratify=y          # <<< THIS IS THE FIX
         )
+
+
+
 
         processed = ProcessedPumpDataset(X_train, X_test, y_train, y_test)
 

@@ -34,22 +34,34 @@ def time_plot(yf: np.ndarray, start: int, stop: int, fname: str):
 
 def fft_plot(yf: np.ndarray, fname: str):
     """
-    Plots frequency spectrum
+    Plots FFT safely (handles shapes and matches freq axis to spectrum length)
     """
-    N = int((config.SAMPLE_RATE / config.RESAMPLE_RATE) * config.DURATION)
-    xf = rfftfreq(N-1, 1 / int(config.SAMPLE_RATE / config.RESAMPLE_RATE))
+    # --- Handle multi-dimensional FFT arrays ---
+    yf = np.asarray(yf)
 
-    _, axs = plt.subplots(nrows=1, figsize=(11, 9))
-    plt.rcParams['font.size'] = '14'
+    # If (channels x freq) take first channel
+    if yf.ndim == 2:
+        if yf.shape[0] < yf.shape[1]:
+            yf = yf[0]
+        else:
+            yf = yf[:, 0]
 
-    for label in (axs.get_xticklabels() + axs.get_yticklabels()):
-        label.set_fontsize(14)
+    # Ensure 1-D
+    yf = yf.flatten()
 
-    plt.plot(xf, yf)
-    axs.set_title('Frequency spectra')
-    axs.set_ylabel('Amplitude')
-    axs.set_xlabel('Frequency (Hz)')
+    # --- Build matching frequency axis ---
+    effective_fs = int(config.SAMPLE_RATE / config.RESAMPLE_RATE)
+    freqs = np.linspace(0, effective_fs / 2, len(yf))
 
-    file_location = eda_config.OUTPUT_DATA_DIR / Path(f'{fname}.png')
+    # --- Plot ---
+    plt.figure(figsize=(11, 9))
+    plt.plot(freqs, yf)
+    plt.title("Frequency Spectrum")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Amplitude")
+
+    file_location = eda_config.OUTPUT_DATA_DIR / Path(f"{fname}.png")
     plt.savefig(file_location)
     plt.close()
+
+
